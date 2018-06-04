@@ -1,0 +1,6 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+кр 4, тест
