@@ -1,0 +1,89 @@
+---
+title: "test_tabashnikova_daria_161"
+author: "dtabashnikova_daria"
+date: "05 06 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+---
+
+Меня зовут Винни-Пух и я очень рад четвёртой контрольной :)
+
+Для начала надо подкрепиться!
+
+```{r}
+library(tidyverse) # манипуляции с данными
+library(maxLik) # метод макс. правдоподобия
+```
+
+Упражнение 1.
+
+Известно, что $X \sim Pois(\lambda = 5)$, $Y \sim N(10, 16)$, $Z \sim Exp(\lambda =1)$.
+
+Найдите $P(XY > Z+Y)$, $E(X^2/(Y+Z))$, $Var((X+Y)/Z)$.
+
+Сгенериуем табличку :)
+```{r}
+n_sim <- 10000
+set.seed(50) # для воспроизводимости выставим зерно генератора случайных чисел
+sim <- tibble(x = rpois(n_sim, lambda = 5),
+              y = rnorm(n_sim, mean = 10, sd = 4),
+              z = rexp(n_sim, rate = 1))
+```
+
+Создадим вспомогательные переменные
+```{r}
+sim2 <- mutate(sim, w = (x + y) / z,
+                    q = x^2 / (y + z),
+                    event = x * y > z + y)
+```
+
+Оцениваем то, что требовалось :)
+
+Оценка вероятности:
+```{r}
+mean(sim2$event)
+```
+
+Оценка мат. ожидания
+```{r}
+mean(sim2$q)
+```
+
+Оценка дисперсии
+```{r}
+var(sim2$w)
+```
+
+Упражнение 2.
+
+Берём встроенный набор данных: цены бриллиантов
+```{r}
+y <- diamonds$price
+```
+
+Модель: $f(y_i) = \frac{k}{2}\exp(-k|y_i-m|)$
+
+Оцените $k$, $m$ методом максимального правдоподобия.
+
+```{r}
+ell <- function(theta, y) {
+  k <- theta[1]
+  mu <- theta[2]
+  n <- length(y)
+  log_lik <- n * log(k) - k * sum(abs(y - mu))
+  return(log_lik)
+}
+```
+
+Максимизируем
+```{r}
+model <- maxLik(ell, start = c(0.0005, 2500), y = y)
+summary(model)
+```
+
