@@ -1,0 +1,85 @@
+---
+title: "Кр 4"
+author: "Винни-Пух"
+date: '29 мая 2018 г '
+output: html_document
+lang: ru-RU
+---
+
+Меня зовут Винни.
+для начала подкрепимся
+
+```{r}
+library(tidyverse)
+library(maxLik)
+```
+Упражнение 1.
+
+Сгенерируем табличку
+
+```{r}
+n_sim <- 10000
+set.seed (5) #зерно генератора случайных чисел
+sim <- tibble(x = rpois(n_sim, lambda = 5),
+              y = rnorm(n_sim, mean = 10, sd = 4),
+              z = rexp(n = n_sim, rate = 1))
+
+
+```
+
+Создадим вспомогательные переменные
+
+```{r}
+sim2 <- mutate( sim, w = (x + y) / z,
+                     q = x^2 / (y+z),
+                     event = x * y > z + y)
+
+```
+
+Оцениваем то, что требовалось
+
+Оценка вероятности:
+
+```{r}
+mean(sim2$event)
+```
+
+Оценка мат ожидания
+
+```{r}
+mean(sim2$q)
+```
+
+Оценка дисперсии
+
+```{r}
+var(sim2$w)
+```
+
+
+Упражнение 2.
+
+Берём встроенный набор данных: цены бриллиантов
+
+```{r}
+y <- diamonds$price
+```
+
+Модель. Оценить k и m методом максимального правдоподобия.
+
+```{r}
+ell <- function(theta, y) {
+  k <- theta [1]
+  mu <- theta [2]
+  n <- length(y)
+  log_lik <- n * log(k) - k * sum(abs(y-mu))
+  return(log_lik)
+}
+  
+```
+
+Максимизируем
+```{r}
+model <- maxLik(ell, start = c(0.01, 4000), y = y)
+model
+```
