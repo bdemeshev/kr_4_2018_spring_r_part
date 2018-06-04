@@ -1,0 +1,6 @@
+---
+title: "Test"
+author: "Ася"
+date: '4 июня 2018 г '
+output: html_document
+---
