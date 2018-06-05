@@ -1,0 +1,97 @@
+---
+title: "Prazdnik 4"
+author: "Nikita Kiselev"
+date: "05 06 2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+
+Задача 1.
+В слове Киселёв 7 букв, поэтому $k$ присваиваем значение 7
+```{r}
+k<-7
+n_sim <- 10000
+set.seed(50)
+```
+
+Генерируем распредления
+```{r}
+sim <- tibble(Vasya_Bulochki = rpois(n_sim, lambda = 10),
+              Vasya_C = rnorm(n_sim, mean = 10, sd = 4),
+              Andrey_Bulochki = rbinom(n_sim, size = 2*k, prob = 0.5),
+              Andrey_C = runif(n_sim, min = 2, max = 20))
+```
+
+Создаём требуемые события
+```{r}
+sim2 <- mutate(sim, w = Vasya_bulochki*Vasya_C,
+               z = Vasya_Bulochki*Vasya_C,
+               maybe = w>z,
+               maybe2 = (Vasya_Bulochki>Andrey_Bulochki)&(w>z)
+               )
+```
+
+1. Сколько в среднем тратит Василий на булочки за день?
+```{r}
+> mean(sim2$w)
+[1] 99.62824
+```
+
+2. Чему равна дисперсия дневных расходов Василия?
+```{r}
+> var(sim2$z)
+[1] 2750.477
+```
+
+3. Какова вероятность того, что за один день Василий потратит больше денег, чем Андрей?
+```{r}
+> mean(sim2$maybe)
+[1] 0.4545
+```
+
+4.Какова условная вероятность того, что Василий за день съел больше булочек, чем Андрей, если известно, что Василий потратил больше денег?
+```{r}
+> mean(sim2$maybe2)/mean(sim2$maybe)
+[1] 0.579538
+```
+
+Задача 2.
+```{r}
+library(nycflights13)
+
+we<-nycflights13::weather
+
+```
+
+1. Постройте гистограмму переменной влажность, humid.
+```{r}
+qplot(we$humid, geom="histogram", main="Humidity Histogam", xlab="Amount of Humid")
+```
+
+2. Постройте диаграмму рассеяния переменных влажность и количество осадков, precip
+```{r}
+ggplot(we, aes(x=we$humid, y=we$precip)) +geom_point() + scale_y_continuous(trans='log') +labs (title="Scatter of Humid and Precip", x="Amount of Humid", y="Amount of Precip")
+```
+
+Поскольку значения очень близкие, по y взята логарифмическая шкала
+
+3. Посчитайте выборочное среднее и выборочную дисперсию влажности и количества осадков.
+```{r}
+vybor_sred_precip<-mean(we$precip)
+vybor_disp_precip<-(sd(we$precip,  na.rm = TRUE))^2
+vybor_sred_humid<-mean(we$humid)
+vybor_disp_humid<-(sd(we$humid,  na.rm = TRUE))^2
+```
+И соответствующие ответы:
+```{r}
+> vybor_sred_precip
+[1] 0.002726368
+> vybor_disp_precip
+[1] 0.0003867034
+> vybor_sred_humid
+[1] NA
+> vybor_disp_humid
+[1] 368.4894
+```
