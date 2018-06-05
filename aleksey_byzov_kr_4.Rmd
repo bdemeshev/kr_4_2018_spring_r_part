@@ -1,0 +1,92 @@
+---
+title: "Kr_4"
+author: "Aleksey Byzov"
+date: '5 июня 2018 г '
+output: html_document
+---
+Меня зовут Алексей Бызов.
+Для начала проверим подключенные пакеты.
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+```
+Задача 1.
+
+```{r}
+n_sim = 10000
+set.seed(5)
+sim <- tibble (x = rpois(n = n_sim, lambda = 10),
+               y = rnorm(n = n_sim, mean = 2, sd = 1),
+               z = rbinom(n = n_sim, size = 10, prob = 0.5),
+               t = runif(n = n_sim, min = 2, max = 20))
+```
+1. Сколько в среднем тратит Василий на булочки за день?
+```{r}
+sim2 <- mutate(sim, a = exp(y) * x)
+mean(sim2$a)
+```
+2. Чему равна дисперсия дневных расходов Василия?
+```{r}
+var(sim2$a)
+```
+
+3. Какова вероятность того, что за один день Василий потратит больше денег, чем Андрей?
+```{r}
+sim3 <- mutate(sim2, b = t * y,
+               event = a > b)
+mean(sim3$event)
+```
+4. Какова условная вероятность того, что Василий за день съел больше булочек, чем Андрей, если известно, что Василий потратил больше денег?
+```{r}
+sim4 <- sim3[sim3$event > 0,]
+sim5 <- mutate(sim4, k = x > z)
+mean(sim5$k)
+```
+Упражнение 2.
+1. Постройте гистограмму переменной влажность, humid. У графика подпишите оси!
+```{r}
+sim10 <- tibble(weather$humid, weather$precip)
+sim11 <- na.omit(sim10)
+humid <- weather$humid
+precip <- weather$precip
+hist(humid, xlab = 'Переменная влажность', ylab = 'Значение', main = 'Гистограмма переменной влажности')
+```
+2. Постройте диаграмму рассеяния переменных влажность и количество осадков, precip. У графика подпишите оси!
+
+```{r}
+stripchart(weather$humid ~ weather$precip,
+           xlab = 'Переменная влажность',
+           ylab = 'Количество осадков',
+           main = 'Диаграмма рассеяния влажности и осадков')
+```
+3. Посчитайте выборочное среднее и выборочную дисперсию влажности и количества осадков.
+```{r}
+mean(sim11$`weather$precip`)
+```
+```{r}
+var(sim11$`weather$precip`)
+```
+```{r}
+
+mean(sim11$`weather$humid`)
+```
+```{r}
+var(sim11$`weather$humid`)
+```
+
+
+
+4. С помощью максимального правдоподобия оцените параметр $\mu$, предположив, что наблюдения за влажностью имеют нормальное $N\left(\mu, 370\right)$-распределение и независимы. Постройте 95%-ый доверительный интервал для $\mu$.
+```{r}
+ell <- function(x, mu){
+  n = length(precip)
+  log_lik = sum((x - mu)^2)
+  return(log_lik)
+}
+```
+
+```{r}
+maxLik(ell, start = c(0.01, 4000), y = precip)
+```
+
