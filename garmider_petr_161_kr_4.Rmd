@@ -1,0 +1,196 @@
+---
+title: "garmider_petr_161_kr_4"
+author: "Петр Гармидер"
+date: '5 июня 2018 г '
+output: html_document
+lang: ru-RU
+---
+
+
+Подключаю нужные библоитеки! 
+
+
+```{r}
+library(maxLik)
+library(tidyverse)
+k <- 8
+set.seed(17)
+n_sim <- 10000
+```
+
+
+Генерирую данные для Васи:
+
+```{r}
+vasya <- tibble(log_vas = rnorm(sd = 1, mean = 2, n = n_sim))
+```
+
+Превращаю логарифм затрат в обычные затраты:
+
+```{r}
+vasya <- mutate(vasya, expen = exp(vasya$log_vas), 
+                count_vasya = rpois(n = n_sim, 10))
+```
+
+Посчитаю сколько в среднем стоит каждая булочка:
+```{r}
+vasya_per_cake <- mean(vasya$expen)
+vasya_per_cake
+```
+
+Посчитаю сколько в среднем покупает булочек Вася:
+```{r}
+vasya_cnt <- mean(vasya$count_vasya)
+vasya_cnt
+```
+
+Т.к траты Васи на булочки и кол-во булочек независимые величины $\Rightarrow E(XY) = E(X) \times E(Y)$
+
+1. $E(Вася тратит)$:
+
+```{r}
+vasya_overall_expend <- vasya_cnt * vasya_per_cake
+vasya_overall_expend
+```
+ 
+Посчитаем $Var(дневных расходов Васи)$
+```{r}
+vasya <- mutate(vasya, per_day_exp = vasya$expen * vasya$count_vasya)
+```
+
+
+Отсюда $2. Var(per_day_exp)$: 
+```{r}
+var(vasya$per_day_exp)
+```
+
+Генерируем Андрея!
+
+```{r}
+andrew <- tibble(anrew_count = rbinom(n = n_sim, size = 2 * k, prob = 0.5))
+andrew <- mutate(andrew, expen = runif(n_sim, 2, 20))
+andrew <- mutate(andrew, per_day_exp = andrew$anrew_count * andrew$expen)
+```
+
+Чтобы ответить на вопрос 3, сгенерируем сл столбец:
+
+```{r}
+vas_greater_and <- tibble(event = vasya$per_day_exp > andrew$per_day_exp)
+```
+Итого: $3. \hat p = $
+```{r}
+mean(vas_greater_and$event)
+```
+
+Возьмем те эксперименты, когда Вася съел булочек больше, чем Андрей.
+
+```{r}
+cnt = tibble(event = 
+               vasya$count_vasya[vas_greater_and$event] > andrew$anrew_count[vas_greater_and$event])
+```
+
+Оцениваем: $4. \hat p = $
+
+```{r}
+mean(cnt$event)
+```
+
+
+Сейчас попробую писать понятнее. Прошлая задача - тренировка. :) 
+Задача 2. Пункт 1.
+
+```{r}
+data <- nycflights13::weather
+hist(data$humid, main = "Humidity", xlab = "")
+```
+
+Задача 2. Пункт 2.
+
+```{r}
+plot(data$humid, data$precip, main = "Диаграмма рассеяния", xlab = "Влажность", ylab = "Количество осадков")
+```
+
+
+Задача 2. Пункт 3.
+
+Выборочное среднее влажности:
+
+```{r}
+mean(data$humid, na.rm = TRUE)
+```
+
+Выборочная дисперсия влажности:
+```{r}
+var(data$humid, na.rm = TRUE)
+```
+
+
+Выборочное среднее осдаков:
+
+```{r}
+mean(data$"precip", na.rm = TRUE)
+```
+
+Выборочная дисперсия осадков:
+```{r}
+var(data$"precip", na.rm = TRUE)
+```
+
+
+```{r}
+humid <- na.omit(data$humid)
+precip <- na.omit(data$"precip")
+```
+
+Задача 2. Пункт 4. 
+```{r}
+ell <- function(theta, x){
+  mu <- theta
+  sigma2 <- 370
+  n = length(x)
+  log_lik <- -n/2 * log(sigma2) - 1/(2* sigma2) * sum((x - mu) ^ 2)
+  return(log_lik)
+}
+```
+
+
+Максимизируем правдоподобие:
+
+```{r}
+model <- maxLik(ell, start = c(62), x = humid)
+summary(model)
+```
+
+Получили $\hat \mu_{ML} = 62.347322$ 
+
+
+Тогда $\mu \in (62.3477 - 1.96 \sqrt(0.1172^2), 62.3477 + 1.96 \sqrt(0.1172^2))$
+
+или: $\mu \in ( 62.11799, 62.57741)$
+
+Задача 2. Пункт 5.
+
+```{r}
+ell <- function(theta, x){
+  mu <- 60
+  sigma2 <- theta
+  n = length(x)
+  log_lik <- -n/2 * log(sigma2) - 1/(2*sigma2) * sum((x - mu) ^ 2)
+  return(log_lik)
+}
+```
+
+Максимизируем правдоподобие:
+
+```{r}
+model <- maxLik(ell, start = c(200), x = humid)
+summary(model)
+```
+
+
+Получили $\hat \sigma^2_{ML} = 373.8098$ 
+
+
+Тогда $\sigma^2  \in (373.8098 - 1.96 \sqrt(0.18^2), 373.8098 + 1.96 \sqrt(0.18^2))$
+
+или: $\sigma^2 \in (373.457, 374.1626)$
