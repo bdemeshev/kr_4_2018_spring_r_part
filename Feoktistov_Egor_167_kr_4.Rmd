@@ -1,0 +1,46 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+flights <- nycflights13::flights
+planes <- nycflights13::planes
+airlines <- nycflights13::airlines
+airports <- nycflights13::airports
+weather <- nycflights13::weather
+
+```
+Nycflights13
+1)
+```{r}
+weather.df <- data.frame(weather)
+k <- weather.df %>% group_by(humid)
+ggplot(k, aes(x = humid)) + geom_histogram(stat = "count") + ylim(0, 50) + xlab("Влажность") + ylab("Число наблюдений")
+```
+2)
+```{r}
+ggplot(k, aes(x = humid, y = precip)) + geom_point() + xlab("Влажность") + ylab("Осадки")
+```
+3)
+```{r}
+rr <- weather.df %>% summarise(mean_precip = mean(precip), sd_precip = sd(precip))
+kk <- weather.df %>% summarise(mean_humid = mean(humid, na.rm = TRUE), sd_humid = sd(humid, na.rm = TRUE))
+rrkk <- cbind(rr, kk)
+rrkk
+
+```
+4)
+```{r}
+humid <- na.omit(weather.df$humid)
+logl <- function(mu, vector) {
+n <- length(vector)
+sigma2 <- 370
+llValue <- -n / 2 * log(sigma2) - 1 / 2 / sigma2 * sum((vector - mu)^2)
+return(llValue)
+}
+model <- maxLik(logl, start = c(mu = 0, vector = humid), x = vector)
+summary(model)
+
+```
