@@ -1,0 +1,154 @@
+Название файла
+---
+title: "karasenko_anton_161_kr_4"
+author: "Anton Karasenko"
+date: "05 06 2018"
+output: html_document
+---
+
+
+
+
+
+
+
+
+
+Симулируем бурную деятельность!
+
+
+```{r}
+library(tibble)
+xx <- 10000
+set.seed(5)
+var1 <- tibble(x = rpois(xx, lambda = 10), 
+y = rnorm(xx, mean = 2, sd = 1),
+z = rbinom(xx, 16,0.5),
+c = runif(xx,2,20))
+```
+
+
+```{r}
+library(dplyr)
+m <- mutate(var1, e = x * exp(y),
+              rr = x * c )
+```
+```{r}
+all_2 <- mutate(all, b = exp(y),
+                w = x * b,
+                с = z * a)
+```
+
+Пункт 1
+средние затраты на булочки
+```{r}
+mean(m$e)
+```
+
+
+Пункт 2
+дисперсия дневных расходов на булочки
+```{r}
+var(m$e)
+```
+```{r}
+mean(m$rr)
+```
+```{r}
+var(m$rr)
+```
+
+
+
+Пункт 3
+```{r}
+step_3 <- mutate(m, ifif = x * e > x * c)
+```
+Найдем вероятность, что Василий тратит больше за один день, чем Андрей
+```{r}
+mean(step_3$ifif)
+```
+
+
+
+
+
+
+
+
+
+
+Сражаемся с реальностью!
+
+Просмотрим датасет
+```{r}
+library(nycflights13)
+library(ggplot2)
+weather
+```
+
+Пункт 1 Построим гистограмму
+```{r}
+hist(weather$humid, breaks = 100, freq = FALSE, col = "blue",
+      main = "Пункт 1",
+      xlab = "День",
+      ylab = "Влажность")
+```
+
+
+Пункт 2
+```{r}
+plot(weather$humid, weather$precip, 
+     main="Пункт 2", 
+     xlab="Влажность ",
+     ylab="Количество осадков")
+```
+
+Пункт 3
+```{r}
+hum = na.omit(weather$humid)
+pre = na.omit(weather$precip)
+```
+выборочное среднее и выборочная дисперсия влажности
+```{r}
+mean(hum)
+var(hum)
+```
+выборочное среднее и выборочная дисперсия количества осадков
+```{r}
+mean(pre)
+var(pre)
+```
+
+
+
+Пункт 4
+```{r}
+logl <- function(param, x)  {
+  mu <- param
+  N <- length(x)
+  ll <- -0.5*length(x)*log(2*pi) - length(x)*log(sqrt(370)) - sum(0.5*(x - mu)^2/370)
+return(ll) }
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
