@@ -1,0 +1,137 @@
+---
+title: "kr_4"
+author: "Elizaveta Karnauhova"
+date: '5 июня 2018 г '
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Задание 1.
+
+Сгенерируем табличку.
+
+```{r}
+n_sim <- 10000 
+set.seed (25) #зерно генератора случайных чисел 
+sim <- tibble(x = rpois(n_sim, lambda = 10),
+              z = rlnorm(n_sim, meanlog=2, sdlog=1),
+              y = rbinom(n_sim, 20, 0.5),
+              a = runif(n_sim, min=2, max=20))
+```
+
+Создадим вспомогательные переменные.
+
+```{r}
+sim2 <- mutate( sim, v = x * z,
+                d = y * a,
+                event = x * z > y * a)
+
+```
+
+Оцениваем.
+
+Оценка мат ожидания 
+
+```{r}
+mean(sim2$v) 
+```
+
+Оценка дисперсии 
+
+```{r} 
+var(sim2$v) 
+``` 
+
+Оценка вероятности
+
+```{r} 
+mean(sim2$event) 
+``` 
+
+
+Задание 2.
+
+```{r}
+library(nycflights13)
+```
+
+Введём переменные 
+
+```{r}
+h <- weather$humid
+p <- weather$precip
+```
+
+Построим гистограмму
+
+```{r}
+hist(h,
+     xlab = "Влажность",
+      ylab = "Частота",
+      main = "Гистограмма переменной влажность")
+
+
+```
+
+Построим диаграмму рассеивания
+
+```{r}
+plot(h,p,
+      xlab = "Влажность",
+      ylab = "Количество осадков",
+      main = "Диграмма рассеивания")
+```
+
+
+Считаем выборочное среднее и дисперсию влажности
+
+```{r}
+mean(h)
+var(h)
+```
+
+Считаем выборочное среднее и дисперсию количества осадков
+
+```{r}
+mean(p)
+var(p)
+```
+
+Модель. Оценить mu методом максимального правдоподобия. 
+
+```{r} 
+ell <- function(theta, h) { 
+mu <- theta [2] 
+n <- length(h) 
+log_lik <- (-1) * n / 2 * ln(370) - 1 / (2 * 370) * sum((h-mu)^2)
+return(log_lik) 
+}
+
+``` 
+
+Максимизируем 
+```{r} 
+model <- maxLik(ell, start = c(0.01, 4000), y = h) 
+model 
+```
+
+Модель. Оценить sigma^2 методом максимального правдоподобия. 
+
+```{r} 
+ell <- function(theta, h) { 
+sigma2 <- theta [1] 
+n <- length(h) 
+log_lik <- -n / 2 * ln(sigma2)- 1 / (2 * sigma2) * sum((h-mu)^2)
+return(log_lik) 
+}
+
+``` 
+
+Максимизируем 
+```{r} 
+model <- maxLik(ell, start = c(0.01, 4000), y = h) 
+model 
+```
+
+
