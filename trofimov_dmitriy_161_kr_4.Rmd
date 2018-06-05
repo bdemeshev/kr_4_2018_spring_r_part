@@ -1,0 +1,79 @@
+---
+title: "Контрольная 4"
+author: "Трофимов Дмитрий"
+date: "05/06/2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+chunk_output_type: consol
+---
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+```
+
+```{r} 
+n_som <- 10^4 
+set.seed(25) 
+sim <- tibble(a = rpois(n_sim, lambda = 10), 
+b = rnorm(n_sim, mean = 2, sd = 1), 
+c = rbinom(n_sim, 16, 0.5), 
+d = runif(n_sim, 2, 20)) 
+``` 
+
+```{r} 
+sim2 <- mutate(sim, event = a * exp(b), 
+sum = c * d, 
+m = sum > event, 
+s = (a > c) & (sum > event)) 
+
+``` 
+Задча1
+Пункт 1 
+```{r} 
+mean(sim2$event) 
+``` 
+
+Пункт 2 
+```{r} 
+var(sim2$event) 
+``` 
+Пункт 3 
+```{r} 
+mean(sim2$m) 
+``` 
+Пункт 4 
+```{r} 
+k = mean(sim2$m) 
+g = mean(sim2$s) 
+g/k 
+```
+Задача 2
+Пункт 1
+```{r}
+library(nycflights13)
+library(ggplot2)
+weather
+hist(weather$humid, breaks = 10, freq = FALSE, col = "black",
+      xlab = "Дни",
+      ylab = "Влажность",
+      main = "Уровень влажности")
+```
+Пункт2
+```{r}
+attach(weather)
+plot(weather$humid, weather$precip, main="Диаграмма", 
+  	xlab="Влажность", ylab="Количество осадков", pch=19)
+```
+3 Пункт
+```{r}
+l = na.omit(weather$humid)
+r = na.omit(weather$precip)
+mean(l)
+var(l)
+mean(r)
+var(r)
+```
+
+
