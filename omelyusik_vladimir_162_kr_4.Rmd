@@ -1,0 +1,150 @@
+---
+title: "Контрольная 4"
+author: "Омелюсик Владимир"
+date: "6/5/2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r message = FALSE}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+set.seed(123)
+```
+
+## Симулируем бурную деятельность - Решение
+
+Будем решать с помощью симуляций.
+
+```{r}
+n_sim <- 10^4
+
+# log затрат в рублях
+all_data <- tibble(puns_everyday_vas = rpois(n_sim, lambda = 10),
+                   ln_costs_every_vas = rnorm(n_sim, mean = 2, sd = 1),
+                   puns_everyday_andr = rbinom(n_sim, size = 2*length("Omelyusik"), prob = 0.5),
+                   costs_every_andr = runif(n_sim, min = 2, max = 20))
+
+```
+
+1. Средние затраты Василия на булочки: 
+```{r} 
+mean(all_data$puns_everyday_vas*all_data$ln_costs_every_vas)
+```
+
+2. Дисперсия дневных расходов Василия:
+```{r} 
+var(all_data$puns_everyday_vas*all_data$ln_costs_every_vas)
+```
+
+3. Вероятность того, что за день Василий потратит больше Андрея:
+```{r}
+logical_thing <- all_data$puns_everyday_vas * all_data$ln_costs_every_vas > all_data$puns_everyday_andr * all_data$costs_every_andr
+mean(logical_thing)
+```
+
+4. Условная вероятность того, что Василий съел за день больше булочек, чем Андрей, если Василий потратил больше денег.
+```{r}
+intersect <- mean(all_data$puns_everyday_vas > all_data$puns_everyday_andr)*mean(logical_thing)
+intersect / mean(logical_thing)
+```
+
+## Сражаемся с реальностью!
+
+```{r}
+data <- nycflights13::weather
+```
+
+1. Построим гистограмму влажности (и подпишем оси).
+```{r warning = FALSE, message = FALSE}
+ggplot(data, aes(x = data$humid)) + 
+  geom_histogram() + 
+  ylab("Плотность") + 
+  xlab("Влажность") + 
+  ggtitle("Гистограмма распределения Влажности") + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+2. Построим диаграмму рассеяния переменных Влажность и Количество осадков (и подпишем оси).
+```{r warning=FALSE, message=FALSE}
+ggplot(data, aes(x = data$humid, y = data$precip)) +
+  geom_point() +
+  ylab("Количество осадков") + 
+  xlab("Влажность") + 
+  ggtitle("Диаграмма рассеяния Влажности против Количества осадков") + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+3. Посчитаем выборочное среднее Влажности и Количества осадков, но прежде очистим данные.
+```{r}
+data <- na.omit(data)
+mean_humid <- mean(data$humid)
+mean_precip <- mean(data$precip)
+
+var_humid <- var(data$humid)
+var_precip <- var(data$precip)
+```
+
+Выборочное среднее Влажности равно `r mean_humid`, а Количества осадков: `r mean_precip`.
+
+Выборочная дисперсия Влажности равна `r var_humid`, а Количества осадков: `r var_precip`.
+
+4. Найдём логарифм функции правдоподобия, если Влажность ~ $N\left(\mu, 370\right)$, и наблюдения независимы. 
+```{r}
+log_lik <- function(mu, x) {
+  n <- length(x)
+  res <- -n / 2 * log(370) - 1 / 2 / 370 * sum((x - mu)^2)
+  return(res)
+}
+```
+
+Теперь максимизируем функцию правдоподобия. По всей видимости, в переменной Влажность были пропущенные значения, удалим их.
+```{r}
+model <- maxLik(log_lik, start = c(0), x = data$humid)
+summary(model)
+```
+
+Получили, что оценка $\hat{\mu}$ равна `r model$estimate`.
+
+Строим доверительный интервал:
+
+```{r}
+left_bound <- model$estimate - 1.96 * 0.1311
+right_bound <- model$estimate + 1.96 * 0.1311
+```
+
+Доверительный интвевал для $\mu$:
+
+$\hat{\mu} \in [$ `r left_bound` $;$ `r right_bound`$]$.
+
+5. Наконец, оценим дисперсию с помощью ML, если наблюдения за Влажностью ~ $N\left(60, \sigma^2\right)$ и независимы.
+
+```{r}
+log_lik2 <- function(sigma2, x) {
+  n <- length(x)
+  res <- -n / 2 * log(sigma2) - (1 / (sigma2 * 2)) * sum((x - 60)^2)
+  return(res)
+}
+``` 
+
+```{r}
+model2 <- maxLik(log_lik2, start = c(123), x = data$humid)
+summary(model2)
+```
+
+Итак, оценка $\hat{\sigma^2}$ составляет `r model2$estimate`.
+
+Теперь будем строить доверительный интервал.
+
+```{r}
+left_bound2 <- model2$estimate * (length(data$humid) - 1) / (qchisq(df = length(data$humid) - 1, 0.975))
+right_bound2 <- model2$estimate * (length(data$humid) - 1) / (qchisq(df = length(data$humid) - 1, 0.025))
+```
+
+Доверительный интвевал для $\sigma^2$:
+
+$\hat{\sigma^2} \in [$ `r left_bound2` $;$ `r right_bound2`$]$.
+
