@@ -1,0 +1,68 @@
+---
+title: "Untitled"
+author: "Соня Родина"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+```
+
+jkhgjhgjhg hg jhg jh
+
+```{r}
+
+```
+
+histogram
+```{r}
+nycflights13::weather
+x<-nycflights13::weather
+ggplot(x, aes(humid),xlab="humid")+ geom_histogram(binwith=20, ylab="count")
+
+```
+
+Диаграмма рассеивания
+
+```{r}
+x<-nycflights13::weather
+ggplot(x, aes(humid, precip))+geom_point()
+
+```
+
+выборочное среднее для humid
+
+```{r}
+c<-nycflights13::weather
+h<-c$humid
+mean(h)
+```
+
+выборочное среднее для precip
+```{r}
+c<-nycflights13::weather
+m<-c$precip
+mean(m)
+```
+
+выборочная дисперсия для precip
+
+```{r}
+k<-nycflights13::weather
+l<-k$precip
+
+var(l, y=NULL, na.rm=FALSE)
+```
+
+выборочная дисперсия для humid
+
+```{r}
+c<-nycflights13::weather
+o<-c$humid
+var(o, y=NULL, na.rm=FALSE)
+```
+
