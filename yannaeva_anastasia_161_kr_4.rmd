@@ -1,0 +1,84 @@
+---
+title: "yannaeva_anastasia_161_kr_4"
+author: "Yannaeva Anastasia"
+date: '5 июня 2018 г '
+output: html_document
+---
+
+```{r}
+library (tidyverse)
+library (nycflights13)
+library (maxLik)
+```
+
+Упр 1.1
+
+```{r}
+n_sim <- 10^4
+set.seed(57)
+all <- tibble(x = rpois(n_sim, lambda = 10),
+              b = rnorm(n_sim, mean = 2, sd = 1),
+              z = rbinom(n_sim, size = 16, prob = 1/2),
+              c = runif(n_sim, min = 2, max = 20))
+```
+
+
+
+```{r message = FALSE, warning = FALSE}
+n_sim2 <- mutate(all, w = x * b, q = z *c )
+```
+
+Мат. ожидание w:
+```{r}
+mean(n_sim2$w)
+```
+
+Дисперсия w:
+```{r}
+var(n_sim2$w)
+```
+
+Мат. ожидание q:
+```{r}
+mean(n_sim2$q)
+```
+
+Дисперсия q:
+```{r}
+var(n_sim2$q)
+```
+
+
+```{r}
+all_2 <- mutate(all, event = x * b > z * c)
+```
+
+Найдем вероятность, что Василий тратит больше за один день, чем Андрей:
+```{r}
+mean(all_2$event)
+```
+
+Упр. 2 
+1 Гистограма
+```{r}
+hist(weather$humid, breaks = 10, freq = FALSE, col = "blue",
+      xlab = "День",
+      ylab = "Влажность в nycflights13",
+      main = "Гистограма")
+```
+
+
+
+
+
+2 Диаграма
+```{r}
+attach(weather)
+plot(weather$humid, weather$precip, main="Диаграма", 
+  	xlab="Влажность", ylab="Количество осадков", pch=10)
+```
+
+
+
+
+
