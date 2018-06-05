@@ -1,0 +1,114 @@
+---
+title: "KR"
+author: "Nastya"
+date: "05 06 2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse) # манипуляции с данными
+library(maxLik) # метод максимального правдоподобия
+library(nycflights13) # данные
+library(ggplot2)
+```
+
+Волкова - 7 букв, 
+X - количество булочек, кторые съедает Василий
+Y - количество булочек, кторые съедает Андрей
+```{r}
+k <- 7
+n_sim = 1000
+set.seed(5)
+data_1 = tibble(X = rpois(n_sim,lambda = 10),
+              p_X = rnorm(n = n_sim , mean = 2, sd = 1),
+              Y = rbinom(n = n_sim ,size = 2*k, prob = .5),
+              p_Y = runif(n = n_sim, min = 2, max = 20))
+```
+Сколько в среднем тратит Василий на булочки за день?
+S_x - это сколько в каждый из 1000 дней Василий потратил на булочки
+Найдем среднее:
+```{r}
+data2 = mutate(data_1, S_x = X*p_X, S_y = Y*p_Y)
+mean(data2$S_x)
+```
+Чему равна дисперсия дневных расходов Василия?
+```{r}
+var(data2$S_x)
+```
+Какова вероятность того, что за один день Василий потратит больше денег, чем Андрей?
+```{r}
+data3 = mutate(data2, event = S_x > S_y)
+sum(data3$event)/n_sim
+```
+Какова условная вероятность того, что Василий за день съел больше булочек, чем Андрей, если известно, что Василий потратил больше денег?
+```{r}
+data4 = mutate(data3, event2 = X > Y, event3 = event2 * event)
+(sum(data4$event3)/n_sim)/(sum(data3$event)/n_sim)
+```
+
+2 задача
+Построим гистограмму
+```{r}
+weather <- nycflights13::weather
+hist(weather$humid, xlab = "time", ylab = "Relative humidity")
+```
+
+диаграмму рассеяния переменных влажность и количество осадков
+
+```{r}
+hist(weather$precip, xlab = "time", ylab = "Preciptation, in inches")
+
+```
+выборочное среднее и выборочную дисперсию влажности и количества осадков
+```{r}
+
+mean(weather$humid, na.rm = TRUE)
+var(weather$humid, na.rm = TRUE)
+mean(weather$precip, na.rm = TRUE)
+var(weather$precip, na.rm = TRUE)
+
+```
+С помощью максимального правдоподобия оцените параметр $\mu$, предположив, 
+что наблюдения за влажностью имеют нормальное $N(\mu,370)$ -распределение и независимы. 
+Постройте 95%-ый доверительный интервал для $\mu$
+```{r}
+func <- function (theta, y){
+  mu <- theta[1]
+  n <- length(y)
+  log_liklihood <- -n/2*log(2*3.14) - -n/2*log(370) - 1/2/370*(sum(y-mu)^2)
+  return(log_liklihood)
+  
+}
+func(c(2,3), y)
+
+Очистим данные
+```{r}
+new_data = na.omit(weather$humid)
+```
+Протестируем модель
+```{r}
+model <- maxLik(func, start = c(1), y = new_data)
+summary(model)
+model$maximum
+```
+CI
+```{r}
+error <- qnorm(0.975)*sqrt(370/n)
+left <- model$maximum-error
+right <-model$maximum+error
+left
+right
+```
+С помощью максимального правдоподобия оцените параметр σ2 предположив, что наблюдения за влажностью имеют нормальное N(60,σ2) распределение и независимы. Постройте 95%-ый доверительный интервал для σ2
+
+
+```
+
+
