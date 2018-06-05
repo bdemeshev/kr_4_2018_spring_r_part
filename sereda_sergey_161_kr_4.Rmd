@@ -1,0 +1,93 @@
+---
+title: "Контрольная работа  №4"
+author: "Середа Сергей"
+date: "05 06 2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+```
+```{r}
+n_sim <- 10^4
+set.seed(57)
+all <- tibble(x = rpois(n_sim, lambda = 10),
+              y = rnorm(n_sim, mean = 2, sd = 1),
+              z = rbinom(n_sim, size = 3, prob = 1/2),
+              a = runif(n_sim, min = 2, max = 20))
+```
+
+
+Добавим в модель переменные
+```{r}
+all_2 <- mutate(all, b = exp(y),
+                w = x * b,
+                с = z * a)
+```
+
+Посчитаем средние затраты Василия  в день
+```{r}
+mean(all_2$w)
+```
+Посчитаем дисперсию дневных расходов Василия
+```{r}
+var(all_2$w)
+```
+Добавим переменные, описываемые еще 
+```{r}
+all_3 <- mutate(all_2, event = x * b > z * a)
+```
+
+Найдем вероятность, что Василий тратит больше за один день, чем Андрей
+```{r}
+mean(all_3$event)
+```
+Добавим еще необходимые переменные
+```{r}
+all_4 <- mutate(all_3, event2 = (x > z) & (x * b > z * a),
+                event3 = x>z)
+```
+
+Найдем необходимую условную вероятность
+```{r}
+q = mean(all_4$event2)
+t = mean(all_4$event3)
+q/t
+```
+
+Задача 2.
+```{r}
+library(nycflights13)
+library(ggplot2)
+weather
+hist(weather$humid, breaks = 30, freq = FALSE, col = "green",
+      xlab = "Какая-то переменная",
+      ylab = "Влажность",
+      main = "Гисстограмма первая")
+```
+
+Построим диаграмму
+```{r}
+attach(weather)
+plot(weather$humid, weather$precip, main="диаграмма 2", 
+  	xlab="Влажность ", ylab="количество осадков", pch=22, type = "p")
+```
+
+Ответ на 3 пункт
+```{r}
+human = na.omit(weather$humid)
+pre = na.omit(weather$precip)
+mean(hum)
+var(hum)
+mean(pre)
+var(pre)
+
+```
+
+```
+
+
