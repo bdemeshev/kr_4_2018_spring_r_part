@@ -1,0 +1,45 @@
+---
+title: "РљРѕРЅС‚СЂРѕР»СЊРЅР°СЏ 4"
+author: "Р’РёРЅРЅРё-РџСѓС…"
+date: "29 05 2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+
+Как я это прорешал
+
+```{r}
+
+library(maxLik)
+library(tidyverse)
+n_sim <- 10000
+set.seed(50) # для воспроизводимости выставим зерно генератора случайных чисел
+sim <- tibble(x = rpois(n_sim, lambda = 5),
+              y = rnorm(n_sim, mean = 10, sd = 4),
+              z = rexp(n_sim, rate = 1))
+
+sim2 <- mutate(sim, w = (x + y) / z,
+               q = x^2 / (y + z),
+               event = x * y > z + y)
+mean(sim2$event)
+mean(sim2$q)
+var(sim2$w)
+
+y<-diamonds$price
+myf<- function(theta, y) {
+  k <- theta[1]
+  mu <- theta[2]
+  n <- length(y)
+  log_lik<-n*log(k)-k*sum(abs(y-mu))
+  return(log_lik)
+}
+
+model<-maxLik(myf, start=c(0.0005, 2500), y=y)
+summary(model)
+```
+
+
+
+
