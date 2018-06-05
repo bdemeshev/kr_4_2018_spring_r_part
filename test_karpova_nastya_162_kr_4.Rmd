@@ -1,6 +1,6 @@
 ---
-title: "Test"
+title: ":)"
 author: "Ася"
-date: '4 июня 2018 г '
+date: '5 июня 2018 г '
 output: html_document
 ---
