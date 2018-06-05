@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+author: "Chernov"
+date: '5 июня 2018 г '
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Задача 1
+Подключаем пакеты.
+``` {r message = FALSE, warning = FALSE}
+library(tidyverse)
+library(maxLik)
+```
+6 букв в фамилии Чернов
+```{r}
+n_sim <- 10^4
+set.seed(50)
+table <- tibble(a = rpois(n_sim, lambda = 10),
+              b = rnorm(n_sim, mean = 2, sd = 1),
+              x = rbinom(n_sim, size = 12, prob = 1/2),
+              y = runif(n_sim, min = 2, max = 20)
+              )
+```
+
+пункт 1
+
+```{r}
+table1 <- mutate(table, b1 = exp(b),
+                 sum1 = b1 * a,
+                 sum2 = x * y,
+                 event = sum1 > sum2,
+                 event1 = (a>x) & (sum1 > sum2))
+mean(table1$sum1)
+```
+
+пункт 2
+
+```{r}
+var(table1$sum1)
+```
+пункт 3
+
+```{r}
+mean(table1$event)
+```
+пункт 4
+
+```{r}
+q = mean(table1$event)
+w = mean(table1$event1)
+w/q
+```
+
+Задача 2
+
+пункт 1
+```{r}
+library(nycflights13)
+library(ggplot2)
+hist(weather$humid, breaks = 30, freq = FALSE,
+      xlab = "День",
+      ylab = "Влажность")
+```
+
+пункт 2
+```{r}
+plot(weather$humid, weather$precip, main="Диаграмма", 
+  	xlab="Влажность ", ylab="Осадки", pch=20)
+```
+
+пункт 3
+```{r}
+hum = na.omit(weather$humid)
+pre = na.omit(weather$precip)
+mean(hum)
+var(hum)
+mean(pre)
+var(pre)
+```
+пункт 4
+```{r}
+logl <- function(theta, x) {
+  
+  mu <- theta[1]
+  sigma2 <- theta[2]
+  n <- length(x)
+  
+  res <- -n / 2 * log(sigma2) - 1 / 2 / sigma2 * sum((x - mu)^2)
+  
+  return(res)
+}
+
+
+```
+
