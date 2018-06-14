@@ -1,0 +1,80 @@
+---
+title: "KR-4"
+author: "Nastya"
+date: "29 05 2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+
+симуляционно оцените вероятность того, что Х- Pois (5), Y - норм(10,16), Z - exp(1) p(XY> Z+Y)
+
+установка
+```{r}
+library(tidyverse) # манипуляции с данными
+library(maxLik) # метод максимального правдоподобия
+
+```
+Упр 1
+симуляционно оцените вероятность того, что $Х \sim Pois(\lambda = 5)$, $Y  \sim N(10,16)$ , $Z \sim  Exp(1) p(XY> Z+Y)
+
+```{r}
+n_sim <- 10000
+set.seed(5) # для воспроизводимости выставим зерно
+sim = tibble(x = rpois(n_sim, lambda = 5), 
+             y = rnorm(n_sim, mean = 10, sd = 4),
+             z = rexp(n_sim, rate = 1))
+help(rexp)
+```
+Создадим вспомогательные переменные
+```{r}
+sim2 <- mutate(sim, w = (x+y)/z, 
+                    q = x^2 / (y+z),
+                    event = x*y > z+y)
+```
+Оцениваем, что требовалось
+Оценка вероятности
+
+```{r}
+mean(sim2$event)
+```
+Оценка мат ожидания
+```{r}
+mean(sim2$q)
+```
+Оценка дисперсии
+```{r}
+var(sim2$w)
+```
+
+Упражнение 2.
+Берем встроенный набор данных, 
+```{r}
+y <- diamonds$price
+```
+
+Модель
+$y_i \sim $ независимы
+$ f(y_i) \sim \frac{k}{2}exp(-k|y_i - m|)$
+Оценить k и m функцией максимального правдоподобия
+
+```{r}
+ell <- function (theta, y){
+  k <- theta[1]
+  mu <- theta[2]
+  n <- length(y)
+  log_lik <- n*log(k) - k * sum(abs(y-mu))
+  return(log_lik)
+  
+}
+ell(c(2,3), y)
+```
+максимизируем
+```{r}
+model <- maxLik(ell, start = c(0.003,2500), y = y)
+model$maximum
+model$gradient
+model$estimate
+```
+
