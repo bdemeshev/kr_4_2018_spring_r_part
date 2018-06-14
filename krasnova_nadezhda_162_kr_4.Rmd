@@ -1,0 +1,133 @@
+---
+title: "krasnova_nadezhda_162_kr_4"
+author: "Краснова Надежда"
+date: "5 июня 2018"
+output: html_document
+lang: ru-RU
+---
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+
+```
+
+Задача 1. **Симулируем бурную деятельность!**
+
+Параметр $k = 8$ - число букв в своей фамилии в именительном падеже.
+
+Каждый день Василий съедает случайное количество булочек, которое распределено по Пуассону с параметром $10$. Логарифм затрат в рублях на каждую булочку распределён нормально $N(2, 1)$.
+Андрей каждый день съедает биномиальное количество булочек $Bin(2k, 0.5)$. Затраты Андрея на каждую булочку распределены равномерно на отрезке $[2;20]$.
+
+```{r}
+n_sim <- 10^4
+set.seed(100)
+all <- tibble(x_v = rexp(n_sim, rate = 10),
+              y_v = rnorm(n_sim, mean = 2, sd = 1),
+              x_a = rbinom(n_sim, size = 16, prob = 0.5),
+              y_a = runif(n_sim, min = 2, max = 20))
+all2 <- mutate(all, c_v_log = x_v * y_v, c_a = x_a * y_a, c_v = exp(c_v_log), event = c_v > c_a)
+```
+
+1. Сколько в среднем тратит Василий на булочки за день?
+В среднем за день в логарифмах Василий тратит:
+```{r}
+mean_v_log <- mean(all2$c_v_log)
+mean_v <- exp(mean_v_log)
+mean_v_log
+mean_v
+```
+
+2. Чему равна дисперсия дневных расходов Василия?
+```{r}
+var_v_log <- var(all2$c_v_log)
+var_v <- exp(var_v_log)
+var_v_log
+var_v
+```
+
+3. Какова вероятность того, что за один день Василий потратит больше денег, чем Андрей?
+```{r}
+prob <- mean(all2$event)
+prob
+```
+
+4. Какова условная вероятность того, что Василий за день съел больше булочек, чем Андрей, если известно, что Василий потратил больше денег?
+```{r}
+prob_cond <- mean(all2$x_v > all2$x_a) * prob / prob
+prob_cond
+```
+
+Задача 2. **Сражаемся с реальностью!**
+В пакете`nycflights13` встроен набор данных `weather` о погоде в разные дни в разных аэропортах.
+
+1. Постройте гистограмму переменной влажность, `humid`. У графика подпишите оси!
+```{r}
+qplot(data = nycflights13::weather, x = humid, main = "Гистограмма влажности", xlab = "Значения влажности", ylab = "Число наблюдений") 
+```
+
+2. Постройте диаграмму рассеяния переменных влажность и количество осадков, `precip`. У графика подпишите оси!
+```{r}
+plot(x = log(nycflights13::weather$humid), y = nycflights13::weather$precip, xlab = "log-значения влажности", ylab = "Количество осадков", main = "Диаграмма рассеяния")
+```
+
+3. Посчитайте выборочное среднее и выборочную дисперсию влажности и количества осадков.
+
+```{r}
+mean_humid <- mean(na.omit(nycflights13::weather$humid))
+mean_precip <- mean(na.omit(nycflights13::weather$precip))
+var_humid <- var(na.omit(nycflights13::weather$humid))
+var_precip <- var(na.omit(nycflights13::weather$precip))
+```
+
+4. С помощью максимального правдоподобия оцените параметр $\mu$, предположив, что наблюдения за влажностью имеют нормальное $N \left( \mu, 370 \right)$-распределение и независимы. Постройте 95%-ый доверительный интервал для $\mu$.
+
+```{r}
+logl <- function(theta, x) {
+  mu <- theta
+  sigma2 = 370
+  n <- length(x)
+  res <- -n / 2 * log(sigma2) - 1 / 2 / sigma2 * sum((x - mu)^2)
+  return(res)
+}
+```
+
+Максимизируем правдоподобие.
+```{r}
+theta_0 = 62
+model <- maxLik(logl, start = theta_0, x = na.omit(nycflights13::weather$humid))
+summary(model)
+```
+
+95%-ый доверительный интервал для $\mu$.
+
+```{r}
+lower_b <- model[["estimate"]] + qnorm(0.025) * sqrt(370 / length(na.omit(nycflights13::weather$humid)))
+upper_b <- model[["estimate"]] + qnorm(0.975) * sqrt(370 / length(na.omit(nycflights13::weather$humid)))
+```
+
+5. С помощью максимального правдоподобия оцените параметр $\sigma^2$, предположив, что наблюдения за влажностью имеют нормальное $N \left ( 60, \sigma^2 \right )$-распределение и независимы. Постройте 95%-ый доверительный интервал для $\sigma^2$.
+```{r}
+logl2 <- function(param, x) {
+  mu = 60
+  sigma2 <- param
+  n <- length(x)
+  res <- -n / 2 * log(sigma2) - 1 / 2 / sigma2 * sum((x - mu)^2)
+  return(res)
+}
+```
+
+Максимизируем правдоподобие.
+```{r}
+param_0 = 368
+model2 <- maxLik(logl2, start = param_0, x = na.omit(nycflights13::weather$humid))
+summary(model2)
+```
+
+95%-ый доверительный интервал для $\sigma^2$.
+```{r}
+lower_b_2 <- model2[["estimate"]] * length(na.omit(nycflights13::weather$humid)) / qchisq(0.975, length(na.omit(nycflights13::weather$humid) - 1))
+upper_b_2 <- model2[["estimate"]] * length(na.omit(nycflights13::weather$humid)) / qchisq(0.025, length(na.omit(nycflights13::weather$humid) - 1))
+```
+
+
