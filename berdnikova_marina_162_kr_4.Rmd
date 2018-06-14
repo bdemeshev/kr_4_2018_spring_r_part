@@ -1,0 +1,92 @@
+---
+title: "berdnikova_marina__162_kr_4"
+output: html_document
+lang: ru_RU
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+help(nycflights13)
+```
+Для Василия
+$v$ - количество булочек (Василий)
+$ln_cost$ - логарифм затрат на каждую булочку (Василий)
+$n_sim$  - Количество симуляций
+Если каждый день v булочек, а всего n_sim дней, то нужно сгенерировать $v \cdot n_sim$ стоимостей
+```{r}
+k <- 10
+n_sim <- 10^4
+all_v <- tibble(v = rpois(n_sim, lambda = 10),
+              ln_cost = rnorm(n_sim*v, mean = 2, sd = 1),
+              costs_v = v*exp(ln_cost))
+
+```
+$a$ - количество булочек (Андрей)
+cost_a - затраты (Андрей)
+```{r}
+
+all_a <- tibble(a = rbinom(n_sim, size = 2*k, prob=1/2),
+              cost_a = runif(n_sim*a, min = 2, max = 20),
+                             costs_a = a*cost_a)
+```
+Среднее и дисперсия для Василия, учитываем, что изначально мы знаем логирифм расходов
+```{r}
+mean(all_v$costs_v)
+var(all_v$costs_v)
+```
+3. P(cost_v>cost_a)
+```{r}
+events <- tibble(event = all_v$costs_v > all_a$costs_a,
+              event_1 = all_v$costs_v > all_a$costs_a & all_v$v > all_a$a)
+mean(events$event)
+
+```
+4. P(v > a| cost_v > cost_a) - считает по формуле условной вероятности
+```{r}
+p <- mean(events$event_1)/ mean(events$event)
+p
+```
+
+Задача 2. 
+2. 
+```{r}
+library(nycflights13)
+library(ggplot2)
+help(weather)
+ggplot(table, aes(x = humid, y = precip))
+
+table <- na.omit(weather)
+ggplot(table, aes(x = humid, y = precip))+ geom_point() + scale_x_discrete(name = "Влажность") + scale_y_discrete(name = "Кол-во осадков")
+```
+
+3. 
+```{r}
+mean_humid <- mean(table$humid)
+mean_humid
+mean_precip <- mean(table$precip)
+mean_precip
+var_humid <- var(table$humid)
+var_humid
+var_precip <- var(table$precip)
+var_precip
+```
+4. 
+```{r}
+logl <- function(theta, humid) {
+  mu = theta
+  n <- length(humid)
+  res <- -n/2*log(sigma2) - 1/2/sigma2 * sum((x-mu)^2)
+return(res)
+}
+
+library(maxLik)
+theta_0 <- c(60)
+model <- maxLik(logl, start = theta_0, x=table$humid)
+summary(model)
+```
+
+
