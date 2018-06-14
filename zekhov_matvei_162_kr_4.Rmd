@@ -1,0 +1,119 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+set.seed(68)
+```
+
+Зададим количество дней
+```{r}
+days <- 10^5
+```
+
+Сгенерируем количество булочек и расходы в количестве, равном $10^5$
+```{r}
+n_bull_vasya <- rpois(days, 10)
+expend_vasya <- exp(rnorm(n_bull_vasya, mean = 2, sd = 1))
+print(mean(expend_vasya)) #Средние расходы
+print(var(expend_vasya)) #Дисперсия расходов
+```
+
+В слове "Зехов"" аж пять букв. Поэтому $k = 5$.  Добавим все данные в одну таблицу и сгенерируем все нужные переменные.
+```{r}
+k <- 5
+n_bull_andrew <- rbinom(n = days, size = 2 * k, prob = 0.5 )
+expend_andrew <- runif(n = n_bull_andrew, min = 2, max = 20)
+all_exp <- tibble(x = expend_vasya,
+                  y = expend_andrew,
+                  z = expend_vasya > expend_andrew,
+                  p = n_bull_vasya > n_bull_andrew,
+                  t = z * p)
+prob_1 <- mean(all_exp$z) #Вероятность 1
+print(prob_1)
+
+prob_2 <- mean(all_exp$t) #Вероятность 2
+print(prob_2)
+
+```
+
+
+Ну, построим графики. Тут без комментариев.
+```{r}
+weather <- nycflights13::weather
+
+
+qplot(data = weather, x = humid, xlab = "Влажность", ylab = "Количество наблюдений")
+
+qplot(data = weather, x = humid, y = precip, xlab = "Влажность", ylab = "Количество осадков")
+
+```
+
+Для удобства выведем "влажность" и "осадки" в отдельные переменные и уберём одно неизвестное значение из переменной "влажность". Вычслим средние значения
+```{r}
+humid <- weather$humid
+precip <- weather$precip
+
+humid <- humid[!is.na(humid)]
+
+mean_humid = mean(humid)
+mean_precip = mean(precip)
+```
+
+Возьмём один в один функцию из семинара, чтобы не изобретать велосипед. Модифицируем её для двух разных задач.
+
+В первой оставим оценку только для параметра $\mu$
+```{r}
+logl_mu <- function(param, x){
+  mu <- param
+  sigma2 <- 370
+  n <- length(x)
+  res <- -n / 2 * log(sigma2) - 1/2/sigma2 * sum((x - mu)^2)
+  
+  return(res)
+}
+```
+
+Во второй - только для $\sigma^2$. Экспоненциируем параметр $\sigma^2$, чтобы избежать ошибок.
+
+```{r}
+logl_sigma <- function(param, x){
+  mu <- 60
+  sigma2 <- exp(param)
+  n <- length(x)
+  res <- -n / 2 * log(sigma2) - 1/2/sigma2 * sum((x - mu)^2)
+  
+  return(res)
+}
+```
+
+Построим предсказания для двух разных моделей, произвольно выбрав стартовые точки около тех значений, что мы получили для показателя "влажность" ранее.
+
+```{r}
+model_mu <- maxLik(logl_mu, start = 60, x = humid)
+summary(model_mu)
+
+```
+
+```{r}
+model_sigma <- maxLik(logl_sigma, start = 5, x = humid)
+summary(model_sigma)
+```
+
+Получили оценки параметров. Теперь построим доверительные интервалы. Ну, как построим. Попробуем. Сначала для мат. ожидания:
+
+`r 62.3478 - qt(0.975, length(humid))*0.008743` $\le \mu \le$ `r 62.3478 + qt(0.975, length(humid))* 0.008743`
+
+И для дисперсии тоже:
+
+`r (length(humid) - 1) * 5.9242 / qchisq(0.975, length(humid) - 1)` $\le \sigma \le$ `r (length(humid) - 1) * 5.9242 / qchisq(0.025, length(humid) - 1)`
+
+```{r}
+
+```
+
+
