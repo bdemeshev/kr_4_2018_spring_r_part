@@ -1,0 +1,118 @@
+---
+title: "Контрольная 4"
+author: "Андрей Невский"
+date: "05/06/2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r}
+library(tidyverse) # манипуляции с данными
+library(maxLik) #maximal liknhood
+
+```
+
+Сгенерируем табличку
+```{r}
+n_sim <- 10000
+k <- 7
+set.seed(5) #для воспроизводимости генератора случайных чисел
+sim <- tibble(x = rpois(n_sim, lambda = 10), #bulki vasiliya
+              y = rnorm(n_sim, mean = 2, sd = 1), #cena bulki Vasi
+              z = rbinom(n_sim, 2 * k, 0.5), #bulki Andreya
+              q = runif(n_sim, 2, 20)) #cena bulki Andreya
+```
+
+Посчитаем затраты Василия и Андрея:
+```{r}
+
+sim2 <- mutate(sim, cost_V = (x * exp(y)),
+               cost_A = (z * q))
+```
+
+1 Средние дневные траты Василия:
+```{r}
+mean(sim2$cost_V)
+```
+
+2 Дисперсия дневных расходов Василия:
+```{r}
+var(sim2$cost_V)
+```
+
+3 Веротятность того, что Василий потратит больше, чем Андрей:
+```{r}
+mean(sim2$cost_V > sim2$cost_A)
+all_V <- mean(sim2$cost_V > sim2$cost_A)
+```
+
+```{r}
+sim_3 <- mutate(sim2,
+                all_V = (cost_V > cost_A),
+                cond_V = (x>z) & (cost_V > cost_A))
+
+```
+
+4 Условная вероятность
+```{r}
+
+print(mean(sim_3$cond_V) / mean(sim_3$all_V))
+```
+
+Сражение с реальностью
+```{r}
+library(nycflights13)
+```
+1 Гистограмма
+```{r}
+hist(weather$humid, breaks = 20, freq = FALSE, col = "lightblue",
+      xlab = "Переменная X",
+      ylab = "Влажность",
+      main = "Уровень влажности")
+
+```
+
+
+2 диаграмму рассеяния переменных влажность и количество осадков
+
+
+```{r}
+hist(weather$humid, breaks = 10, freq = FALSE, col = "lightblue",
+      xlab = "Переменная X",
+      ylab = "Влажность",
+      main = "Уровень влажности")
+
+```
+
+
+3 выборочное среднее и выборочную дисперсию влажности и количества осадков
+
+```{r}
+humid_full = na.omit(weather$humid)
+precip_full = na.omit(weather$precip)
+```
+Для влажности:
+```{r}
+mean(humid_full)
+var(humid_full)
+```
+Для количества осадков:
+```{r}
+mean(precip_full)
+var(precip_full)
+```
+
+
+
+4 
+```{r}
+logl <- function(param, x)  {
+  mu <- param
+  N <- length(x)
+  lnl <- -0.5 * N * log(2 * pi) - N * log(sqrt(370)) - sum(0.5 * (x - mu) ^ 2 / 370)
+return(lnl) }
+```
+

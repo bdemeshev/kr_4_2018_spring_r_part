@@ -1,0 +1,13 @@
+---
+title: "test_nevskiin_andrey_161_kr_4.Rmd"
+author: "Шапокляк"
+date: "04/06/2018"
+output: html_document
+---
+test
+
+
+still test
+
+
+fore
