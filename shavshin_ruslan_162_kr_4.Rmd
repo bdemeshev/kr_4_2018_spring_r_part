@@ -1,0 +1,16 @@
+---
+title: "Untitled"
+author: "Винни-Пух"
+date: "June 5, 2018"
+output: html_document
+---
+
+gjhgjhgjh
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+glimpse(weather)
+qplot(data=weather,x=humid,y=precip)
+```
+
