@@ -1,0 +1,99 @@
+---
+title: "Paper4"
+author: "Nika"
+date: "May 29, 2018"
+output:
+  pdf_document: default
+  html_document: default
+lang: ru-RU
+editor_options:
+  chunk_output_type: console
+---
+
+Меня зовут Винни, и я очень рад четвертой контрольной. 
+Для начала надо подкрепиться!
+
+```{r}
+library(tidyverse) #
+library(maxLik)
+```
+
+Упражнение 1
+
+известно, что $X \sim Pois(\lambda = 5)$, $Y \sim N(10, 16)$, $Z \sim Exp(\lambda = 1)$.
+
+Найдите $P(XY > Z + Y)$, $var((x + y)/z)$, $E(x^2/(Y+Z))$.
+
+Сгенерируем табличку
+
+```{r}
+n_sim <- 10000
+set.seed(5) #для воспроизводимости выставим зерно генератора случайных чисел
+
+sim <- tibble(x = rpois(n_sim, lambda = 5), 
+              y = rnorm(n_sim, mean = 10, sd = 4),
+              z = rexp(n_sim, rate = 1))
+```
+
+
+
+Создадим вспомогательные переменные
+
+в сим 2 6 переменных
+```{r}
+sim2 <- mutate(sim, w = (x+y)/z,
+                    q = x^2 / (y + z),
+                    event = x * y > z + y)
+```
+
+Оцениваем, что требовалось
+
+Оценка вероятности: 
+
+```{r}
+mean(sim2$event)
+```
+
+оценка мат. ожидания
+
+```{r}
+mean(sim2$q)
+```
+
+Оценка дисперсии
+
+```{r}
+var(sim2$w)
+```
+
+
+Упражнение 2
+
+Берем встроенный набор данных 
+```{r}
+y <- diamonds$price
+
+```
+
+Модель:  $f(y_i) = \frac{k}{2}\exp(-k|y_i - ml)$
+
+Оцените $k$, $m$ методом максимального правдоподобия. 
+
+```{r}
+ell <- function(theta, y) {
+  k <- theta[1]
+  mu <- theta[2]
+  n <- length(y)
+  log_lik <- n * log(k) - k * sum(abs(y - mu))
+  return(log_lik)
+}
+```
+Максимизируем
+```{r}
+model <- maxLik(ell, start = c(0.0005, 2500), y = y)
+summary(model)
+```
+
+
+
+
