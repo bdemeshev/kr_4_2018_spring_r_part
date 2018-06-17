@@ -1,0 +1,85 @@
+---
+title: "Контрольная 4"
+author: "Геворгян Давид"
+date: "05/06/2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+chunk_output_type: console
+---
+
+Подкрепляемся библиотеками
+```{r}
+library(tidyverse) # манипуляции с данными
+library(maxLik) #maximal liknhood
+
+```
+
+Задача 1
+
+```{r}
+n_som <- 10000
+set.seed(5)
+som <- tibble(a = rpois(n_som, lambda = 10), 
+b = rnorm(n_som, mean = 2, sd = 1),
+d = rbinom(n_som, 16,0.5),
+c=runif(n_som,2,20))
+```
+
+```{r}
+som2 <- mutate(som, e = a * exp(b),
+f=d*c,
+m=f>e,
+o=(a>d) & (f>e))
+          
+```
+
+Пункт 1
+
+```{r}
+mean(som2$e)
+```
+Пункт 2
+```{r}
+var(som2$e)
+```
+Пункт 3
+```{r}
+mean(som2$m)
+```
+Пункт 4
+```{r}
+q = mean(som2$m)
+w = mean(som2$o)
+w/q
+```
+
+Задача 2
+Пункт 1
+```{r}
+library(nycflights13)
+library(ggplot2)
+weather
+hist(weather$humid, breaks = 10, freq = FALSE, col = "purple",
+      xlab = "Переменная X",
+      ylab = "Влажность",
+      main = "Уровень влажности")
+```
+Пункт 2
+```{r}
+attach(weather)
+plot(weather$humid, weather$precip, main="Диаграмма", 
+  	xlab="Влажность ", ylab="Количество осадков", pch=25)
+```
+
+Пункт 3
+```{r}
+vla = na.omit(weather$humid)
+pre = na.omit(weather$precip)
+mean(vla)
+var(vla)
+mean(pre)
+var(pre)
+```
+
+
