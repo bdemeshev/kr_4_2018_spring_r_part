@@ -1,0 +1,161 @@
+---
+title: "shestyaeva_alina_161_kr_4"
+author: "Алина"
+date: "05 06 2018"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(maxLik)
+install.packages("nycflights13")
+library(nycflights13)
+
+```
+```{r}
+nycflights
+
+```
+### Номер 1.
+
+Известно, что у число съеденных булочек Василием - $X \sim Exp(\lambda = 10)$, логарифм затрат в рублях на каждую булочку  $ Y \sim N(2, 1)$, Андрей каждый день съедает $Z \sim Binom(n=16, p=1/2$, затраты Андрея на каждую булочку $Q \sim U[2;20]$
+
+
+Решаем с помощью симуляций.
+
+```{r}
+n_sim <- 10^4
+set.seed(68)
+all <- tibble(x = rexp(n_sim, rate = 10),
+              y = exp(rnorm(n_sim, mean = 2, sd = 1)),
+              z = rbinom(n_sim, size = 20, prob = 1/3),
+              q = runif(n_sim, min = 2, max = 20))
+
+sim2 <- mutate(all, w = x * y,
+                    event = y > q,
+               andreisum = z * q,
+               vasiliisum = x * y,
+               diff = vasiliisum > andreisum,
+               event2 = q > y)
+
+
+```
+
+a)Найдем, сколько тратит Василий на все булочки в день.
+
+```{r}
+mean(sim2$vasiliisum)
+```
+
+б)Оценка дисперсии
+```{r}
+var(sim2$w)
+```
+
+в)Оценка вероятности:
+```{r}
+mean(sim2$event)
+```
+
+г)Условная вероятность!
+```{r}
+h2 <- filter(sim2, diff == TRUE)
+mean(h2$event2)
+```
+Задача 2
+1)
+```{r}
+library(nycflights13)
+glimpse(weather)
+a <- weather
+qplot(data = a, x = humid) +
+ labs(x = 'Влажность', y = 'Количество', title = 'Гистограмма переменной влажности') 
+```
+2)
+```{r}
+qplot(data = a, x = humid, y = precip) +
+ labs(x = 'Переменная влажности', y = 'Количество осадков', title = 'Диаграмма рассеяния')
+```
+3) 
+```{r}
+summary(a)
+b <- na.omit(a)
+mean(b$humid)
+mean(b$precip)
+var(b$humid)
+var(b$precip)
+```
+4)Модель:  $f(x_i) = \frac{1}{sqrt(2 * \pi 370)}\exp(\frac{(x_i- m)}{2 * 370})$
+
+```{r}
+x <- b$humid
+
+el <- function(theta, x) {
+  m <- theta[1]
+  n <- length(x)
+  log_lik <-  - n * 0.5 * log(2 * pi) - n * 0.5 * log(370) - 0.5 / 370 * sum(x - m)^2
+  return(log_lik)
+}
+
+```
+Максимизируем
+```{r}
+model <- maxLik(el, start = 0.0005, x = x)
+summary(model)
+
+```
+
+Cчитаем доверительный интервал для m:
+
+```{r}
+bab <- model$estimate
+bab
+
+var.hat <- -(1/model$hessian)
+var.hat
+
+
+berror <- qnorm(0.95) * sqrt(var.hat)
+                                             
+
+lefts <- bab - berror
+rights <- bab + berror
+lefts
+rights
+```
+5)
+
+```{r}
+la <- function(r, x)  {
+  s2 <- r
+  N <- length(x)
+  lq <- -0.5*N*log(2*pi) - N*log(sqrt(s2)) - sum(0.5*(x - 60)^2/s2)
+return(lq) }
+```
+
+```{r}
+ba <- maxLik(la, start=c(5), x=x) 
+summary(ba)
+```
+
+```{r}
+baba <- ba$estimate
+baba
+
+var.hata <- -(1/ba$hessian)
+var.hata
+
+
+berrora <- qnorm(0.95) * sqrt(var.hat)
+                                             
+
+left <- baba - berrora
+right <- baba + berrora
+left
+right
+```
+
+
+
