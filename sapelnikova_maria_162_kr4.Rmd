@@ -1,0 +1,104 @@
+---
+title: "sapelnikova_maria_162_kr_4_solution"
+author: "SapelnikovaM"
+date: "05 06 2018"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+```
+
+k = 11
+
+```{r}
+n_sim <- 10^4
+set.seed(68)
+all <- tibble(x = rpois(n_sim, lambda = 10), 
+              y = rnorm(n_sim, mean = 2, sd = 1), 
+              z = rbinom(n_sim, size = 22, prob = 1/2), 
+              w = runif(n_sim, min = 2, max =20))
+```
+Преобразуем полученные данные
+```{r}
+all2<- mutate(all, x, 
+              u = exp(y), 
+              z, 
+              w, 
+              sumV = mean(x) * u, 
+              sumA = mean(z) * w, 
+              event1 = sumV > sumA, 
+              event2 = x > z)
+```
+1) Сколько затрачивает в день: среднее съеденное количесвто съеденных булочек на их стоимость.
+```{r}
+mean(all2$sumV)
+```
+2) Дисперсия дневных расходов 
+```{r}
+var(all2$sumV)
+```
+3) Вероятность того, что Василий тратит больше, чем Андрей
+```{r}
+mean(all2$event1)
+```
+4)Условная вероятность
+```{r}
+mean(subset(all2, event1)$event2)
+```
+
+Вторая задача
+```{r}
+qplot(data = weather, x = humid, xlab = "Влажность", ylab = 'Количество наблюдений')
+```
+
+```{r}
+ggplot(data = weather, aes(x=humid, y=precip)) + geom_point() + xlab('Влажность') + ylab('Количество осадков')
+```
+Выборочное среднее влажности
+```{r}
+mu_humid = mean(weather$humid, na.rm = TRUE)
+```
+Выборочная дисперсия влажности
+```{r}
+var_humid = var(weather$humid, na.rm = TRUE)
+```
+Выборочное среднее количества осадков
+```{r}
+mu_precip = mean(weather$precip, na.rm = TRUE)
+```
+Выбоорчная дисперсия количества осадков
+```{r}
+var_precip = var(weather$precip, na.rm = TRUE)
+```
+Определим лог-функцию правдоподобия 
+```{r}
+logl <- function(theta, x){
+  mu <- theta[1]
+  sigma2 <- theta[2]
+  n <- length(x)
+  res <- -n / 2 * log(sigma2) - 1/2/sigma2 * sum((x - mu)^2)
+  return(res)
+}
+```
+С помощью метода максимального правдоподобия оценим $\mu$ и $\sigma&^2$
+```{r}
+humid_na <- na.omit(weather$humid)
+theta_0 <- c(62, 370)
+model <- maxLik(logl, start = theta_0, x = humid_na)
+summary(model)
+```
+Оценка $\hat\mu$
+```{r}
+model[["estimate"]][1]
+```
+Оценка $\hat\sigma^2$
+```{r}
+model[["estimate"]][2]
+```
+
+
+
