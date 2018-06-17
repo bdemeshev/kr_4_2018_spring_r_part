@@ -1,0 +1,58 @@
+
+
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+
+```
+
+
+```{r}
+n_sim <- 10^4
+set.seed(57)
+shm <- tibble(x1 = rpois(n_sim, lambda = 10),
+              x2 = rnorm(n_sim, mean = 2, sd = 1),
+              x3 = rbinom(n_sim, size = 3, prob = 1/2),
+              x4 = runif(n_sim, min = 2, max = 20))
+```
+
+```{r}
+kek <- mutate(shm,t = exp(x2),
+              k = x1 * t,
+              j = x3 * x4 )
+```
+Средние затраты Васи за день
+
+```{r}
+mean(kek$k)
+
+```
+дисперсия дневных расходов
+```{r}
+var(kek$k)
+
+```
+
+вероятность того, что за один день Василий потратит больше денег, чем Андрей
+```{r}
+chp<-mutate(kek, event = x1*t > x3*x4)
+
+
+mean(chp$event)
+```
+
+```{r}
+weather
+hist(weather$humid, breaks = 20, freq = FALSE, col = "red",
+     xlab = "ничего",
+     ylab = "влажность",
+     main = "Гистограмма")
+
+```
+```{r}
+attach(weather)
+plot(x = weather$humid, y = weather$precip, main = " диаграмма",
+xlab = "Влажность", ylab = " осадки", type = "p")
+
+```
