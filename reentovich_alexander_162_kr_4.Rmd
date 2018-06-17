@@ -1,0 +1,115 @@
+---
+title: "Контрольная 4. Rrrrr-parrrt!"
+author: "Реентович Александр"
+date: "5 июня 2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+Задача 1
+Пусть Вася ест $X$, а Андрей - $Z$ булок в день; логарифм затрат Васи равен $Y$, а затраты Андрея есть $W$.
+```{r message= FALSE}
+library("tidyverse")
+library( "maxLik" )
+library("tibble")
+library("knitr")
+
+n_sim = 10000
+set.seed(50)
+sim <- tibble(x = rpois(n_sim, lambda = 10),
+             y = rnorm(n_sim, mean = 2, sd = 1),
+             z = rbinom(n_sim, size = 18, prob = 1 / 2),
+             w = runif(n_sim, min = 2, max = 20)
+             )
+sim2 <- mutate(sim, x = x,
+                    y = y,
+                    z = z,
+                    v = exp(y),
+                    event = v > w,
+                    event1 = x > z | v > w)
+```
+Оценим $E(X)$
+```{r message= FALSE}
+mean(sim2$x)
+```
+Оценим $P(e^Y > W)$
+```{r message= FALSE}
+mean(sim2$event)
+```
+Оценим $P(X > Z | e^Y > W)$
+```{r message= FALSE}
+mean(sim2$event1)
+```
+Оценим $Var(e^Y)$
+```{r message= FALSE}
+var(sim2$v)
+```
+
+Задача 2
+пункт 1
+
+```{r}
+library("nycflights13")
+weather1 <- na.omit(weather)
+
+q <- weather1$humid
+r <- weather1$precip
+hist(q, breaks = "Sturges", include.lowest = TRUE, right = TRUE, density = NULL, angle = 45, col = NULL, border = NULL, main = paste("Histogram of" , "humid"), ylim = NULL, xlab = "airport", ylab = "humid", axes = TRUE, plot = TRUE, labels = FALSE, nclass = NULL)
+```
+пункт 2
+```{r}
+stripchart(weather1$humid ~ weather1$precip,
+           xlab = "humid",
+           ylab = "precip",
+           method = "stack")
+```
+
+пункт 3
+```{r}
+q <- weather1$humid
+r <- weather1$precip
+weighted.mean(q)
+weighted.mean(r)
+var(q)
+var(r)
+```
+
+
+пункт 4
+```{r}
+q <- weather1$humid
+
+ell <- function(theta, q) {
+  mu = theta [1]
+  n = length (q)
+  ell = -n/2 * log(370) - 1/740 * sum((q - mu)^2)
+  return(ell)
+}
+
+
+
+model = maxLik(ell, start = c(59, 333), q = q)
+summary(model)
+```
+пункт 5
+```{r}
+u <- weather1$humid
+
+ell <- function(theta, q) {
+  b = theta [1]
+  n = length (q)
+  ell = -n/2 * log(b) - 1/2 * b * sum((q - 60)^2)
+  return(ell)
+}
+
+
+
+model = maxLik(ell, start = c(59, 333), q = q)
+summary(model)
+```
+
+
+
+
+
