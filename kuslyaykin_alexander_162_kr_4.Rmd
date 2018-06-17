@@ -1,0 +1,89 @@
+---
+title: "Контрольная 4"
+author: "Кусляйкин Александр"
+date: "05 06 2018"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+Симулируем бурную деятельность
+```{r}
+library(tidyverse)
+library(maxLik)
+n_sim <- 10^4
+set.seed(68)
+all <- tibble (a = rpois(n_sim, lambda = 10),
+               b = rnorm(n_sim, mean = 2, sd = 1),
+               c = rbinom(n_sim, size = 18, prob = 1/2),
+               d = runif(n_sim, min = 2, max = 20))
+```
+1 пункт
+```{r}
+costs <- mutate(all, w = a*b,
+                event = a*b>c*d,
+                event2 = a>c)
+mean(costs$w)
+```
+2 пункт
+```{r}
+var(costs$w)
+```
+3 пункт
+```{r}
+mean(costs$event)
+```
+4 пункт
+```{r}
+mean(costs$event2)
+```
+Сражаемся с реальностью
+Гистограмма:
+```{r}
+a <- nycflights13::weather
+ggplot(a, aes(humid)) +
+  geom_histogram()
+```
+Диаграмма рассеивания
+```{r}
+a <- nycflights13::weather
+ggplot(a, aes(x = humid, y = precip)) +
+  geom_point()
+```
+Выборочные среднее
+```{r}
+a <- nycflights13::weather
+b <- a$humid
+c <- a$precip
+mean_humid <- mean(b)
+mean_precip <- mean(c)
+mean_humid
+mean_precip
+```
+Выборочная дисперсия
+```{r}
+a <- nycflights13::weather
+b <- a$humid
+c <- a$precip
+disp_humid <- var(b)
+disp_precip <- var(c)
+```
+Определим лог-функцию правдоподобия.
+```{r}
+logl <- function(theta, x) {
+  
+  mu <- theta[1]
+  sigma2 <- theta[2]
+  n <- length(x)
+  
+  res <- -n / 2 * log(sigma2) - 1 / 2 / sigma2 * sum((x - mu)^2)
+  
+  return(res)
+}
+```
+Максимизируем правдоподобие.
+
+```{r}
+theta_0 <- c(8, 1)
+model <- maxLik(logl, start = theta_0, x = a$humid)
+summary(model)
+```
