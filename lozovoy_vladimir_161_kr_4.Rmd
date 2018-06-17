@@ -1,0 +1,80 @@
+---
+title: "lozovoy_vladimir_162_kr_4"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(maxLik)
+install.packages(nycfligths13)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+№ 2. Сражаемся с реальностью!
+
+Выберем данные.
+
+```{r}
+y = (na.omit(nycflights13::weather$humid))
+```
+
+1.Постройте гистограмму переменной влажность, humid. У графика подпишите оси!
+```{r}
+
+qplot(y)+ 
+  labs(x = "частота", 
+       y = "значение",
+       title = "Гистограмма для влажности")
+```
+
+2. Постройте диаграмму рассеяния переменных влажность и количество осадков, precip. У графика подпишите оси!
+```{r}
+x = (na.omit(nycflights13::weather))
+ggplot(data = x,aes(x = humid, y = precip)) + 
+  geom_point() + 
+  labs(x = "влажность", 
+       y = "осадки",
+       title = "Диаграмма рассеяния")
+```
+
+
+3.Посчитайте выборочное среднее и выборочную дисперсию влажности и количества осадков.
+```{r}
+var(y)
+mean(y)
+```
+
+3. С помощью максимального правдоподобия оцените параметр μ, предположив, что наблюдения за влажностью имеют нормальное N(μ,370)-распределение и независимы. Постройте 95%-ый доверительный интервал для μ.
+```{r}
+ell <- function(theta, y) {
+  mu <- theta
+  n <- length(y)
+  log_lik <- n * log(370) - 370 * sum(abs(y - mu))
+  return(log_lik)}
+
+ell(1, y)
+ell(60, y)
+# Очевидно, с функцией правдопоодбия проблемы
+model <- maxLik(ell, start = c(0.0005), y = y)
+summary(model)
+ci.lower <- model$estimate - qnorm(p = 0.025)*var(y)
+ci.upper <- model$estimate + qnorm(p = 0.975)*var(y)
+```
+5. С помощью максимального правдоподобия оцените параметр σ2, предположив, что наблюдения за влажностью имеют нормальное N(60,σ2)-распределение и независимы. Постройте 95%-ый доверительный интервал для σ2
+```{r}
+ell <- function(theta, y) {
+  sigma <- theta
+  n <- length(y)
+  log_lik <- n / 2 * log(sigma) - - 1 / 2 /sigma * sum((x - 60)^2)
+  return(log_lik)}
+
+model <- maxLik(ell, start = c(0.0005), y = y)
+summary(model)
+ci.lower <- model$estimate - qnorm(p = 0.025)*var(y)
+ci.upper <- model$estimate + qnorm(p = 0.975)*var(y)
+```
+
+
