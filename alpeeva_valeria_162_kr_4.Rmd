@@ -1,0 +1,120 @@
+---
+title: "alpeeva_valeria_162_kr_4"
+author: "Алпеева"
+date: '5 июня 2018 г '
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+
+```
+
+
+Симулируем бурную деятельность.
+
+Каждый день Василий съедает случайное количество булочек, которое распределено по Пуассону с параметром $10$. Логарифм затрат в рублях на каждую булочку распределён нормально $N(2, 1)$.
+Андрей каждый день съедает биномиальное количество булочек $Bin(14, 0.5)$. Затраты Андрей на каждую булочку распределены равномерно на отрезке $[2;20]$.
+
+```{r}
+n_sim <- 10000
+set.seed(50) 
+sim <- tibble(x = rpois(n_sim, 10),
+              y = rnorm(n_sim, 0, 1),
+              a = rbinom(n_sim, 14, 0.5),
+              b = runif(n_sim, 2, 20))
+```
+
+Создадим дополнительные переменные.
+```{r}
+sim2 <- mutate(sim, w = x*exp(y),
+               event = w > a * b,
+               event2 = x > a & w > a * b )
+```
+
+Посчитаем средние траты Василия на булки.
+```{r}
+mean(sim2$w)
+```
+Посчитаем дисперсию расходов Василия на булки.
+
+```{r}
+var(sim2$w)
+```
+Вероятность того, что Василий потратит больше, чем Андрей.
+```{r}
+mean(sim2$event)
+```
+
+Условная вероятность: $P(X > A | W > A*B)$ (обозначения из кода)
+
+```{r}
+mean(sim2$event2) / mean(sim2$event)
+```
+
+Сражаемся с реальностью. 
+
+Пункт 1.
+
+```{r, warning=FALSE}
+ggplot(data = weather, aes(x = humid)) +
+  geom_histogram()
+
+```
+Пункт 2.
+
+```{r}
+weather$precip <- as.factor(weather$precip)
+ggplot(weather$precip, aes(x = humid)) +
+  geom_point()
+```
+
+Пункт 3.
+Выборочное среднее .
+
+```{r}
+mean(weather$humid, na.rm=TRUE)
+```
+
+```{r}
+mean(weather$precip, na.rm=TRUE)
+```
+```{r}
+var(weather$humid)
+```
+
+Пункт 4. 
+С помощью максимального правдоподобия оцените параметр $\mu$, предположив, что наблюдения за влажностью имеют нормальное $N\left(\mu, 370\right)$-распределение и независимы. Постройте 95%-ый доверительный интервал для $\mu$.
+
+Запишем логарифм функции правдоподобия.
+```{r}
+logl <- function(theta, x) {
+  y <- na.omit(x)
+  mu <- theta
+  n <- length(y)
+  res <- -n / 2 * log(370) - 1/2 / 370 * sum((y - mu)^2)
+  return(res)
+}
+
+```
+Максимизируем.
+
+```{r}
+theta_0 <- c(1)
+model <- maxLik(logl, start = theta_0, x = y)
+summary(model)
+```
+Ищем доверительный интервал.
+
+```{r}
+theta_hat = model$estimate
+conf.level <- 0.95
+crit <- qnorm((1 + conf.level)/2)
+theta_hat + c(-1, 1) * crit * 0.1854
+```
