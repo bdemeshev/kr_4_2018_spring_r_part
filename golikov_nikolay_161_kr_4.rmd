@@ -1,0 +1,81 @@
+---
+title: "golikov_nikolay_161_kr_4"
+author: "golikov nikolay"
+date: "5/06/2018"
+output: html_document
+lang: ru-RU
+editor_options: 
+  chunk_output_type: console
+---
+
+
+пакеты.
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+
+```
+
+### задача 1.
+
+Известно $L \sim U[2;20]$, $H \sim Binom(n=14, p=1/2$, $K \sim N(2,1)$, $M \sim Pois(\lambda = 10)$
+
+
+
+Решаем с помощью симуляций.
+
+```{r}
+n_sim <- 10^4
+set.seed(68)
+pp <- tibble(M = rpois(n_sim, lambda = 10),
+              K = rnorm(n_sim, mean = 2, sd = 1),
+              H = rbinom(n_sim, size = 14 , prob = 1/2),
+              L = runif(n_sim, min = 2, max = 20))
+
+```
+Вспомогательные переменные
+
+```{r}
+pp_2 <- mutate(pp, o = exp(K), w = M * K,
+q = H * L )
+          
+```
+
+Средние затраты Василия  в день
+```{r}
+mean(pp_2$w)
+```
+дисперсия дневных расходов Василия
+```{r}
+var(pp_2$w)
+```
+
+
+новые переменные 
+```{r}
+pp_3 <- mutate(pp_2, ppp = M * o > H * L)
+```
+
+P(василий тратит больше Андрея)
+```{r}
+mean(pp_3$ppp)
+```
+
+### задача 2
+```{r}
+library(nycflights13)
+library(ggplot2)
+weather
+hist(weather$humid, breaks = 15, freq = FALSE, col = "red",
+      xlab = "day",
+      ylab = "humidity",
+      main = "humidity level")
+```
+
+Диаграмма рассеяния переменных влажность и количество осадков
+```{r}
+attach(weather)
+plot(weather$humid, weather$precip, main= "diagram of variability of humidity and precipitation", 
+  	xlab="humidity ", ylab="rainfall", pch=11)
+```
