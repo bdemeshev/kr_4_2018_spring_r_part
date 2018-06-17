@@ -1,0 +1,150 @@
+---
+title: "kurlovich_aleksandra_161_kr_4"
+author: "kurlovich_aleksandra_161_kr_4"
+date: "05 06 2018"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library(tidyverse)
+library(maxLik)
+library(nycflights13)
+```
+упражнение 1.
+пункт 1.
+```{r}
+n_sim <- 10^4
+set.seed(68)
+t111 <- tibble(x = rpois(n_sim, lambda = 10),
+              y = rnorm(n_sim, mean = 2, sd = 1),
+              z = rbinom(n_sim, size = 16, prob = 1/2),
+              t = runif(n_sim, min = 2, max = 20))
+```
+y - это логарифм затрат 
+
+Создадим вспомогательные переменные
+Можно ввести переменную, считающую его расходы в день
+```{r}
+t111 <- mutate(t111, trV = x * exp(y))
+```
+
+```{r}
+mean(t111$trV)
+```
+пункт 2.
+```{r}
+var(t111$trV)
+```
+пункт 3.
+
+Можно ввести переменную, считающую расходы Андрея в день
+```{r}
+t111 <- mutate(t111, trA = z * t)
+```
+
+
+найдем вероятность того, что Вася тратит больше Андрюши: 
+```{r}
+t111 <- mutate(t111, event = trV > trA)
+```
+
+```{r}
+mean(t111$event)
+```
+пункт 4.
+посчитаем совместную вероятность 
+
+```{r}
+t111 <- mutate(t111, event1 = (x > z) & (trV > trA))
+```
+
+```{r}
+mean(t111$event1)
+```
+
+теперь посчитаем условную вероятность: 
+```{r}
+mean(t111$event1)/mean(t111$event)
+```
+Задача 2:
+Пункт 1:
+
+```{r}
+weather
+```
+
+```{r}
+hist(weather$humid, breaks = 15, freq = FALSE, col = "lightblue",
+      xlab = "X",
+      ylab = "Влажность",
+      main = "Гистограмма")
+```
+
+
+Пункт 2: 
+```{r}
+ggplot(weather, aes(x=weather$humid, y=weather$precip)) + geom_point() + scale_y_continuous(trans='log') +labs (title="Humid and Precip", x="Amount of Humid", y="Amount of Precip")
+```
+
+Пункт 3:
+
+```{r}
+weather1 <- na.omit(weather)
+```
+Среднее влажности:
+```{r}
+mean(weather1$humid)
+```
+Дисперсия влажности: 
+```{r}
+var(weather1$humid)
+```
+
+Среднее влажности:
+```{r}
+mean(weather1$precip)
+```
+Дисперсия влажности: 
+```{r}
+var(weather1$precip)
+```
+
+Пункт 4.
+Определим лог-функцию правдоподобия.
+```{r}
+x <- na.omit(weather$humid)
+```
+
+```{r}
+logl <- function(param, x)  {
+  mu <- param
+  N <- length(x)
+  ll <- -0.5*N*log(2*pi) - N*log(sqrt(370)) - sum(0.5*(x - mu)^2/370)
+return(ll) }
+```
+
+```{r}
+res <- maxLik(logl, start=c(50), x=x) 
+summary( res )
+```
+
+
+Пункт 5. 
+
+```{r}
+logr <- function(par, x)  {
+  s2 <- par
+  N <- length(x)
+  lq <- -0.5*N*log(2*pi) - N*log(sqrt(s2)) - sum(0.5*(x - 60)^2/s2)
+return(lq) }
+```
+
+```{r}
+rus <- maxLik(logr, start=c(5), x = x) 
+summary( rus )
+```
+
+
+
+
